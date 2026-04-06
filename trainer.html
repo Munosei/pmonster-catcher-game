@@ -85,13 +85,10 @@
 
         .search-bar {
             margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
         }
 
         .search-input {
-            flex: 1;
+            width: 100%;
             padding: 12px 20px;
             border-radius: 50px;
             border: 2px solid #d4a373;
@@ -125,7 +122,7 @@
 
         .pokemon-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 15px;
             max-height: 500px;
             overflow-y: auto;
@@ -135,9 +132,8 @@
         .pokemon-card {
             background: #2c3e2f;
             border-radius: 20px;
-            padding: 10px;
+            padding: 15px;
             text-align: center;
-            cursor: pointer;
             transition: transform 0.2s;
             position: relative;
         }
@@ -150,38 +146,44 @@
             background: linear-gradient(145deg, #f5b042, #cf8e1f);
         }
 
-        .pokemon-card img {
-            width: 70px;
-            height: 70px;
-            object-fit: contain;
-            image-rendering: crisp-edges;
-            image-rendering: pixelated;
+        .pokemon-id {
+            font-size: 0.7rem;
+            color: #ffecb3;
+            background: rgba(0,0,0,0.3);
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-bottom: 8px;
         }
 
         .pokemon-name {
-            font-size: 0.65rem;
+            font-size: 1rem;
             font-weight: bold;
             color: white;
-            margin-top: 8px;
-            word-wrap: break-word;
+            margin: 10px 0;
+        }
+
+        .pokemon-icon {
+            font-size: 48px;
+            margin: 10px 0;
         }
 
         .shiny-badge {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            font-size: 0.8rem;
+            top: 10px;
+            right: 10px;
+            font-size: 1.2rem;
         }
 
         .release-btn {
             background: #ef4444;
             color: white;
             border: none;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.6rem;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.7rem;
             cursor: pointer;
-            margin-top: 8px;
+            margin-top: 10px;
             width: 100%;
             transition: all 0.2s;
         }
@@ -230,7 +232,7 @@
         <div class="header">
             <h1>📋 TRAINER MANAGEMENT SYSTEM</h1>
             <p>Offline Mode - Manage Your Pokémon Collection</p>
-            <div class="offline-badge">📡 OFFLINE MODE - LOCAL SPRITES</div>
+            <div class="offline-badge">📡 OFFLINE MODE - NO SPRITES NEEDED</div>
         </div>
 
         <div class="stats-grid">
@@ -273,9 +275,14 @@
         <div style="text-align: center;">
             <a href="index.html" class="back-link">← BACK TO GAME</a>
         </div>
+
+        <div class="footer">
+            ✅ Works completely offline | Manage your collection | No sprites required
+        </div>
     </div>
 
     <script>
+        // Pokémon names (Gen 1 and 2)
         const allPokemonNames = [
             "Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard",
             "Squirtle", "Wartortle", "Blastoise", "Caterpie", "Metapod", "Butterfree",
@@ -327,6 +334,12 @@
             return allPokemonNames[id - 1];
         }
 
+        function getPokemonIcon(id) {
+            // Simple emoji representation by type/gen
+            if (id <= 151) return "🟢";
+            return "🔵";
+        }
+
         function loadData() {
             const savedData = localStorage.getItem('pokemonGameSave');
             if (savedData) {
@@ -375,7 +388,6 @@
                 filteredPokemon = filteredPokemon.filter(p => p.id >= 152 && p.id <= 251);
             }
             
-            // Show all caught Pokémon (including duplicates for different variants)
             if (filteredPokemon.length === 0) {
                 grid.innerHTML = '<div class="empty-state">No Pokémon found</div>';
                 return;
@@ -384,9 +396,9 @@
             grid.innerHTML = filteredPokemon.map(p => `
                 <div class="pokemon-card ${p.shiny ? 'shiny' : ''}">
                     ${p.shiny ? '<div class="shiny-badge">✨</div>' : ''}
-                    <img src="sprites/${p.shiny ? 'shiny' : 'normal'}/${p.id}.gif" 
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2270%22 height=%2270%22 viewBox=%220 0 70 70%22%3E%3Crect width=%2270%22 height=%2270%22 fill=%22%23333%22/%3E%3Ctext x=%2235%22 y=%2245%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2212%22%3E${p.id}%3C/text%3E%3C/svg%3E'">
-                    <div class="pokemon-name">${p.shiny ? '✨ ' : ''}${getPokemonName(p.id)}${p.shiny ? ' ✨' : ''}</div>
+                    <div class="pokemon-id">#${p.id.toString().padStart(3, '0')}</div>
+                    <div class="pokemon-icon">${p.shiny ? '⭐' : '🔘'}</div>
+                    <div class="pokemon-name">${getPokemonName(p.id)}</div>
                     <button class="release-btn" data-id="${p.id}" data-shiny="${p.shiny}">RELEASE</button>
                 </div>
             `).join('');
