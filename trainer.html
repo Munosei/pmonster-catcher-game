@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a472a">
+    <title>Trainer Management - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a472a 0%, #0e2a1a 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'Courier New', system-ui, monospace;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 248, 225, 0.95);
+            border-radius: 48px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #2c5a2e, #1f4021);
+            border-radius: 40px;
+            color: #ffecb3;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .offline-badge {
+            display: inline-block;
+            background: #ef4444;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            margin-top: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #2c3e2f;
+            padding: 15px;
+            border-radius: 30px;
+            text-align: center;
+            color: #ffecb3;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f7d44a;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: 2px solid #d4a373;
+            background: white;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            background: #2c3e2f;
+            color: #ffecb3;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: #f7d44a;
+            color: #2c3e2f;
+        }
+
+        .pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .pokemon-card {
+            background: #2c3e2f;
+            border-radius: 20px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .pokemon-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .pokemon-card.shiny {
+            background: linear-gradient(145deg, #f5b042, #cf8e1f);
+        }
+
+        .pokemon-card img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+        }
+
+        .pokemon-name {
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: white;
+            margin-top: 8px;
+            word-wrap: break-word;
+        }
+
+        .shiny-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.8rem;
+        }
+
+        .release-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            margin-top: 8px;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .release-btn:hover {
+            background: #dc2626;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            background: #f7d44a;
+            color: #2c3e2f;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 40px;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            background: #ffecb3;
+            transform: scale(1.02);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9dfc7;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            color: #2c3e2f;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 TRAINER MANAGEMENT SYSTEM</h1>
+            <p>Offline Mode - Manage Your Pokémon Collection</p>
+            <div class="offline-badge">📡 OFFLINE MODE - LOCAL SPRITES</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="offlineTotalCount">0</div>
+                <div class="stat-label">TOTAL POKÉMON</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="offlineShinyCount">0</div>
+                <div class="stat-label">SHINY POKÉMON</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="offlineUniqueCount">0</div>
+                <div class="stat-label">UNIQUE SPECIES</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="offlineGen1Count">0</div>
+                <div class="stat-label">GEN 1</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="offlineGen2Count">0</div>
+                <div class="stat-label">GEN 2</div>
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search Pokémon by name...">
+        </div>
+
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">ALL</button>
+            <button class="filter-btn" data-filter="normal">NORMAL</button>
+            <button class="filter-btn" data-filter="shiny">✨ SHINY ✨</button>
+            <button class="filter-btn" data-filter="gen1">GEN 1</button>
+            <button class="filter-btn" data-filter="gen2">GEN 2</button>
+        </div>
+
+        <div id="offlinePokemonGrid" class="pokemon-grid"></div>
+
+        <div style="text-align: center;">
+            <a href="index.html" class="back-link">← BACK TO GAME</a>
+        </div>
+    </div>
+
+    <script>
+        const allPokemonNames = [
+            "Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard",
+            "Squirtle", "Wartortle", "Blastoise", "Caterpie", "Metapod", "Butterfree",
+            "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot",
+            "Rattata", "Raticate", "Spearow", "Fearow", "Ekans", "Arbok",
+            "Pikachu", "Raichu", "Sandshrew", "Sandslash", "Nidoran♀", "Nidorina",
+            "Nidoqueen", "Nidoran♂", "Nidorino", "Nidoking", "Clefairy", "Clefable",
+            "Vulpix", "Ninetales", "Jigglypuff", "Wigglytuff", "Zubat", "Golbat",
+            "Oddish", "Gloom", "Vileplume", "Paras", "Parasect", "Venonat",
+            "Venomoth", "Diglett", "Dugtrio", "Meowth", "Persian", "Psyduck",
+            "Golduck", "Mankey", "Primeape", "Growlithe", "Arcanine", "Poliwag",
+            "Poliwhirl", "Poliwrath", "Abra", "Kadabra", "Alakazam", "Machop",
+            "Machoke", "Machamp", "Bellsprout", "Weepinbell", "Victreebel", "Tentacool",
+            "Tentacruel", "Geodude", "Graveler", "Golem", "Ponyta", "Rapidash",
+            "Slowpoke", "Slowbro", "Magnemite", "Magneton", "Farfetch'd", "Doduo",
+            "Dodrio", "Seel", "Dewgong", "Grimer", "Muk", "Shellder", "Cloyster",
+            "Gastly", "Haunter", "Gengar", "Onix", "Drowzee", "Hypno", "Krabby",
+            "Kingler", "Voltorb", "Electrode", "Exeggcute", "Exeggutor", "Cubone",
+            "Marowak", "Hitmonlee", "Hitmonchan", "Lickitung", "Koffing", "Weezing",
+            "Rhyhorn", "Rhydon", "Chansey", "Tangela", "Kangaskhan", "Horsea",
+            "Seadra", "Goldeen", "Seaking", "Staryu", "Starmie", "Mr. Mime",
+            "Scyther", "Jynx", "Electabuzz", "Magmar", "Pinsir", "Tauros",
+            "Magikarp", "Gyarados", "Lapras", "Ditto", "Eevee", "Vaporeon",
+            "Jolteon", "Flareon", "Porygon", "Omanyte", "Omastar", "Kabuto",
+            "Kabutops", "Aerodactyl", "Snorlax", "Articuno", "Zapdos", "Moltres",
+            "Dratini", "Dragonair", "Dragonite", "Mewtwo", "Mew",
+            "Chikorita", "Bayleef", "Meganium", "Cyndaquil", "Quilava", "Typhlosion",
+            "Totodile", "Croconaw", "Feraligatr", "Sentret", "Furret", "Hoothoot",
+            "Noctowl", "Ledyba", "Ledian", "Spinarak", "Ariados", "Crobat",
+            "Chinchou", "Lanturn", "Pichu", "Cleffa", "Igglybuff", "Togepi",
+            "Togetic", "Natu", "Xatu", "Mareep", "Flaaffy", "Ampharos",
+            "Bellossom", "Marill", "Azumarill", "Sudowoodo", "Politoed", "Hoppip",
+            "Skiploom", "Jumpluff", "Aipom", "Sunkern", "Sunflora", "Yanma",
+            "Wooper", "Quagsire", "Espeon", "Umbreon", "Murkrow", "Slowking",
+            "Misdreavus", "Unown", "Wobbuffet", "Girafarig", "Pineco", "Forretress",
+            "Dunsparce", "Gligar", "Steelix", "Snubbull", "Granbull", "Qwilfish",
+            "Scizor", "Shuckle", "Heracross", "Sneasel", "Teddiursa", "Ursaring",
+            "Slugma", "Magcargo", "Swinub", "Piloswine", "Corsola", "Remoraid",
+            "Octillery", "Delibird", "Mantine", "Skarmory", "Houndour", "Houndoom",
+            "Kingdra", "Phanpy", "Donphan", "Porygon2", "Stantler", "Smeargle",
+            "Tyrogue", "Hitmontop", "Smoochum", "Elekid", "Magby", "Miltank",
+            "Blissey", "Raikou", "Entei", "Suicune", "Larvitar", "Pupitar",
+            "Tyranitar", "Lugia", "Ho-Oh", "Celebi"
+        ];
+
+        let caughtPokemon = [];
+
+        function getPokemonName(id) {
+            return allPokemonNames[id - 1];
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem('pokemonGameSave');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                caughtPokemon = data.caughtPokemon || [];
+            }
+            renderStats();
+            renderPokemonList();
+        }
+
+        function renderStats() {
+            const totalCount = caughtPokemon.length;
+            const shinyCount = caughtPokemon.filter(p => p.shiny).length;
+            const uniqueSet = new Set(caughtPokemon.map(p => p.id));
+            const uniqueCount = uniqueSet.size;
+            const gen1Count = caughtPokemon.filter(p => p.id <= 151).length;
+            const gen2Count = caughtPokemon.filter(p => p.id >= 152 && p.id <= 251).length;
+
+            document.getElementById('offlineTotalCount').innerText = totalCount;
+            document.getElementById('offlineShinyCount').innerText = shinyCount;
+            document.getElementById('offlineUniqueCount').innerText = uniqueCount;
+            document.getElementById('offlineGen1Count').innerText = gen1Count;
+            document.getElementById('offlineGen2Count').innerText = gen2Count;
+        }
+
+        function renderPokemonList() {
+            const grid = document.getElementById('offlinePokemonGrid');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+            
+            let filteredPokemon = [...caughtPokemon];
+            
+            if (searchTerm) {
+                filteredPokemon = filteredPokemon.filter(p => 
+                    getPokemonName(p.id).toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (activeFilter === 'shiny') {
+                filteredPokemon = filteredPokemon.filter(p => p.shiny);
+            } else if (activeFilter === 'normal') {
+                filteredPokemon = filteredPokemon.filter(p => !p.shiny);
+            } else if (activeFilter === 'gen1') {
+                filteredPokemon = filteredPokemon.filter(p => p.id <= 151);
+            } else if (activeFilter === 'gen2') {
+                filteredPokemon = filteredPokemon.filter(p => p.id >= 152 && p.id <= 251);
+            }
+            
+            // Show all caught Pokémon (including duplicates for different variants)
+            if (filteredPokemon.length === 0) {
+                grid.innerHTML = '<div class="empty-state">No Pokémon found</div>';
+                return;
+            }
+            
+            grid.innerHTML = filteredPokemon.map(p => `
+                <div class="pokemon-card ${p.shiny ? 'shiny' : ''}">
+                    ${p.shiny ? '<div class="shiny-badge">✨</div>' : ''}
+                    <img src="sprites/${p.shiny ? 'shiny' : 'normal'}/${p.id}.gif" 
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2270%22 height=%2270%22 viewBox=%220 0 70 70%22%3E%3Crect width=%2270%22 height=%2270%22 fill=%22%23333%22/%3E%3Ctext x=%2235%22 y=%2245%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2212%22%3E${p.id}%3C/text%3E%3C/svg%3E'">
+                    <div class="pokemon-name">${p.shiny ? '✨ ' : ''}${getPokemonName(p.id)}${p.shiny ? ' ✨' : ''}</div>
+                    <button class="release-btn" data-id="${p.id}" data-shiny="${p.shiny}">RELEASE</button>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.release-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = parseInt(btn.dataset.id);
+                    const isShiny = btn.dataset.shiny === 'true';
+                    releasePokemon(id, isShiny);
+                });
+            });
+        }
+        
+        function releasePokemon(id, isShiny) {
+            const pokemonName = getPokemonName(id);
+            if (confirm(`Release ${isShiny ? 'SHINY ' : ''}${pokemonName}?\n\nThis cannot be undone!`)) {
+                const index = caughtPokemon.findIndex(p => p.id === id && p.shiny === isShiny);
+                if (index !== -1) {
+                    caughtPokemon.splice(index, 1);
+                    
+                    const savedData = localStorage.getItem('pokemonGameSave');
+                    if (savedData) {
+                        const data = JSON.parse(savedData);
+                        data.caughtPokemon = caughtPokemon;
+                        data.caughtCount = caughtPokemon.length;
+                        data.uniqueSet = Array.from(new Set(caughtPokemon.map(p => p.id)));
+                        localStorage.setItem('pokemonGameSave', JSON.stringify(data));
+                    }
+                    
+                    renderStats();
+                    renderPokemonList();
+                    
+                    const notification = document.createElement('div');
+                    notification.textContent = `Released ${isShiny ? 'SHINY ' : ''}${pokemonName}`;
+                    notification.style.position = 'fixed';
+                    notification.style.bottom = '20px';
+                    notification.style.right = '20px';
+                    notification.style.background = '#ef4444';
+                    notification.style.color = 'white';
+                    notification.style.padding = '10px 20px';
+                    notification.style.borderRadius = '40px';
+                    notification.style.zIndex = '9999';
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 2000);
+                }
+            }
+        }
+        
+        document.getElementById('searchInput').addEventListener('input', () => renderPokemonList());
+        
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderPokemonList();
+            });
+        });
+        
+        loadData();
+    </script>
+</body>
+</html>

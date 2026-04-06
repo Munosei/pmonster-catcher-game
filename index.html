@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a472a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pokemon Catcher Game (PCG)">
+    <title>PCG</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="loadingScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1a472a, #0e2a1a); z-index: 99999; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 20px;">
+    <div style="background: rgba(44, 62, 47, 0.95); padding: 40px 50px; border-radius: 80px; text-align: center; border: 3px solid #f7d44a; max-width: 90%;">
+        <div id="connectionStatus" style="color: #f7d44a; font-size: 1rem;">Please wait</div>
+        <div id="retryButton" style="display: none; margin-top: 20px;">
+            <button onclick="checkConnection()" style="background: #f7d44a; color: #2c3e2f; border: none; padding: 10px 25px; border-radius: 40px; font-weight: bold; cursor: pointer;">⟳ RETRY</button>
+        </div>
+    </div>
+</div>
+
+<div id="mainGame" style="display: none;">
+    <div class="game-container">
+        <div class="stats-bar">
+            <div class="stat-card"><span class="stat-label">🏆 CAUGHT</span><span class="stat-value" id="caughtCount">0</span></div>
+            <div class="stat-card"><span class="stat-label">✨ SHINIES</span><span class="stat-value" id="shinyCount">0</span></div>
+            <div class="stat-card"><span class="stat-label">🎯 TOTAL</span><span class="stat-value">251</span></div>
+        </div>
+
+        <div class="timer-area">
+            <div class="timer-box">⏱️ NEXT ENCOUNTER: <span id="timerDisplay">3</span>s</div>
+            <div id="waitingMessage" style="display: none;" class="waiting-message">⏳ WAITING FOR NEXT ENCOUNTER... ⏳</div>
+        </div>
+
+        <div class="encounter-area">
+            <div class="pokemon-card">
+                <div class="sprite-wrapper" id="spriteWrapper">
+                    <img id="pokemonSprite" class="pokemon-sprite" src="" alt="pokemon">
+                    <div id="shinyTag"></div>
+                </div>
+                <div class="pokemon-name" id="pokemonName">Waiting for encounter...</div>
+                <div class="pokemon-id" id="pokemonId">#---</div>
+                <button class="catch-btn" id="catchBtn" disabled>CATCH!</button>
+            </div>
+        </div>
+
+        <div class="achievements-row">
+            <div class="marquee-container">
+                <div class="marquee-content" id="achievementsMarquee">
+                </div>
+            </div>
+        </div>
+
+        <div class="collection-section">
+            <div class="button-group">
+                <button class="pc-btn" id="pcBtn">💾 YOUR PC</button>
+                <button class="gallery-btn" id="galleryBtn">🎨 GALLERY</button>
+                <button class="battle-btn" id="battleBtn">⚔️ BATTLE</button>
+            </div>
+        </div>
+        <footer>✨ Shiny 1/50 | Rarity-based catch chance | Install as App!</footer>
+    </div>
+</div>
+
+<div id="pokedexModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📖POKÉDEX</h2>
+            <div class="filter-buttons">
+                <button class="gen-filter-btn" data-filter="gen1" onclick="setGenerationFilter('gen1')">GEN 1</button>
+                <button class="gen-filter-btn" data-filter="gen2" onclick="setGenerationFilter('gen2')">GEN 2</button>
+            </div>
+            <button class="close-modal" id="closeModalBtn">✕</button>
+        </div>
+        <div id="pokedexGrid" class="pokedex-grid"></div>
+    </div>
+</div>
+
+<div id="galleryModal" class="modal">
+    <div class="modal-content gallery-modal-content">
+        <div class="modal-header">
+            <h2>UNLOCKABLE GALLERY</h2>
+            <div class="gallery-progress">
+                <span id="galleryProgress">0</span>/<span id="galleryTotal">9</span> UNLOCKED
+            </div>
+            <button class="close-modal" id="closeGalleryBtn">✕</button>
+        </div>
+        <div id="galleryGrid" class="gallery-grid"></div>
+    </div>
+</div>
+
+<!-- Battle Modal -->
+<div id="battleModal" class="modal">
+    <div class="modal-content battle-modal-content">
+        <div class="modal-header">
+            <div>
+                <h2>⚔️ BATTLE CHALLENGE ⚔️</h2>
+            </div>
+            <button class="close-modal" id="closeBattleBtn">✕</button>
+        </div>
+        <div id="battleContent" class="battle-content">
+            <!-- Dynamic content will load here -->
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+<script>
+let music = null;
+let musicStarted = false;
+
+function startMusic() {
+    if (musicStarted) return;
+    
+    music = new Audio('plza.mp3');
+    music.loop = true;
+    music.volume = 0.5;
+    
+    music.play().then(() => {
+        console.log('✅ Music started!');
+        musicStarted = true;
+    }).catch(e => {
+        console.log('Music error:', e);
+    });
+}
+
+window.startMusic = startMusic;
+
+function initMusic() {
+    const mainGame = document.getElementById('mainGame');
+    
+    if (mainGame && mainGame.style.display === 'flex') {
+        console.log('Music ready to play on READY button click');
+    } else {
+        setTimeout(initMusic, 200);
+    }
+}
+
+window.addEventListener('load', () => {
+    setTimeout(initMusic, 1000);
+});
+</script>
+</body>
+</html>
